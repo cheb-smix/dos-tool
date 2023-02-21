@@ -159,6 +159,9 @@ if (!$running && isset($_GET["log"])) {
                 width: 15%;
                 text-align: center;
             }
+            #timingbar {
+                text-align: right;
+            }
         </style>
         <script>
             file_get_contents  = (url) => {	
@@ -189,6 +192,15 @@ if (!$running && isset($_GET["log"])) {
                     location.href = "index.php?log=<?=$logFileName?>";
                 }
             }
+
+            let started = 0;
+
+            updateTiming = () => {
+                if (!started) started = (new Date()).getTime();
+                let currentTime = (new Date()).getTime();
+                document.querySelector("#timingbar").innerHTML = (currentTime - started) / 1000;
+            }
+
         </script>
     </head>
     <body>
@@ -198,10 +210,12 @@ if (!$running && isset($_GET["log"])) {
             if ($running) {
                 ?>
                 <div id="progressbar"><span>0 / <?=$requestsCnt?></span></div>
+                <div id="timingbar">0</div>
                 <a href="./index.php?action=break&log=<?=$logFileName?>" class="btn">Остановить</a>
                 <script>
                     updateProgress();
                     setInterval(updateProgress, 200);
+                    setInterval(updateTiming, 50);
                 </script>
                 <?php
             } else {
@@ -262,6 +276,7 @@ if (!$running && isset($_GET["log"])) {
                             <tr><td>Arithmetic</td><td><?=Math::arithmetic($timing_arr, 3)?></td></tr>
                             <tr><td>Quadratic</td><td><?=Math::quadratic($timing_arr, 3)?></td></tr>
                             <tr><td>Median</td><td><?=Math::median($timing_arr, 3)?></td></tr>
+                            <tr><td>Summary</td><td><?=Math::sum($timing_arr, 3)?></td></tr>
                         </tbody>
                     </table>
                     <table>

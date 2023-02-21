@@ -36,4 +36,9 @@ class Math
         rsort($arr);
         return round($arr[0], $rounder);
     }
+
+    public static function sum(array $arr = [], $rounder = 10)
+    {
+        return round(array_sum($arr), $rounder);
+    }
 }
