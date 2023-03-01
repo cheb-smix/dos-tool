@@ -23,34 +23,32 @@ if (isset($_GET["action"])) {
     }
 }
 
-if (!empty($_POST)) {
+$check = `ps ax | grep "php dm.php"`;
+preg_match("/(\d+) (\d+) (\d+) (dm-[0-9\-]+.log)/", $check, $matches);
+if ($matches) {
     $running = true;
-    $url            = isset($_POST["url"]) ? $_POST["url"] : "";
-    $requestsCnt    = isset($_POST["requestsCnt"])  ? (int) $_POST["requestsCnt"] : 100;
-    $childrenCnt    = isset($_POST["childrenCnt"])  ? (int) $_POST["childrenCnt"] : 10;
-    $secondsCnt     = isset($_POST["secondsCnt"])   ? (int) $_POST["secondsCnt"] : 0;
-    $logFileName    = "dm-" . date("Y-m-d-H-i-s-u") . ".log";
-
-    file_put_contents("./logs/$logFileName", json_encode([
-        "url"           => $url,
-        "requestsCnt"   => $requestsCnt,
-        "childrenCnt"   => $childrenCnt,
-        "secondsCnt"    => $secondsCnt,
-        "executeStarted"=> date("Y-m-d H:i:s"),
-    ], 256) . "\n");
-    
-    $encodedUrl = base64_encode($url);
-
-    $cmd = "cd " . __DIR__ . "; php dm.php $encodedUrl $requestsCnt $childrenCnt $secondsCnt $logFileName > /dev/null 2>/dev/null &";
-    `$cmd`;
+    list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $logFileName) = $matches;
 } else {
-    if (empty($_GET)) {
-        $check = `ps ax | grep "php dm.php"`;
-        preg_match("/(\d+) (\d+) (\d+) (dm-[0-9\-]+.log)/", $check, $matches);
-        if ($matches) {
-            $running = true;
-            list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $logFileName) = $matches;
-        }
+    if (!empty($_POST)) {
+        $running = true;
+        $url            = isset($_POST["url"]) ? $_POST["url"] : "";
+        $requestsCnt    = isset($_POST["requestsCnt"])  ? (int) $_POST["requestsCnt"] : 100;
+        $childrenCnt    = isset($_POST["childrenCnt"])  ? (int) $_POST["childrenCnt"] : 10;
+        $secondsCnt     = isset($_POST["secondsCnt"])   ? (int) $_POST["secondsCnt"] : 0;
+        $logFileName    = "dm-" . date("Y-m-d-H-i-s-u") . ".log";
+    
+        file_put_contents("./logs/$logFileName", json_encode([
+            "url"           => $url,
+            "requestsCnt"   => $requestsCnt,
+            "childrenCnt"   => $childrenCnt,
+            "secondsCnt"    => $secondsCnt,
+            "executeStarted"=> date("Y-m-d H:i:s"),
+        ], 256) . "\n");
+        
+        $encodedUrl = base64_encode($url);
+    
+        $cmd = "cd " . __DIR__ . "; php dm.php $encodedUrl $requestsCnt $childrenCnt $secondsCnt $logFileName > /dev/null 2>/dev/null &";
+        `$cmd`;
     }
 }
 
