@@ -43,6 +43,15 @@ if (!empty($_POST)) {
 
     $cmd = "cd " . __DIR__ . "; php dm.php $encodedUrl $requestsCnt $childrenCnt $secondsCnt $logFileName > /dev/null 2>/dev/null &";
     `$cmd`;
+} else {
+    if (empty($_GET)) {
+        $check = `ps ax | grep "php dm.php"`;
+        preg_match("/(\d+) (\d+) (\d+) (dm-[0-9\-]+.log)/", $check, $matches);
+        if ($matches) {
+            $running = true;
+            list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $logFileName) = $matches;
+        }
+    }
 }
 
 if (!$running && isset($_GET["log"])) {
@@ -159,6 +168,21 @@ if (!$running && isset($_GET["log"])) {
                 width: 15%;
                 text-align: center;
             }
+            .logo {
+                display: inline-block;
+                height: 20vh; 
+                width: 0; 
+                padding-left: 20vh;
+                margin: 0;
+                border-radius: 50%;
+                background-image: url(./logo.jpg);
+                background-position: center;
+                background-size: 100% auto;
+                box-shadow: inset 0px 0px 30px #333, inset 0px 0px 10px #333;
+            }
+            .logo-container {
+                text-align: center;
+            }
             #timingbar {
                 text-align: right;
             }
@@ -206,9 +230,13 @@ if (!$running && isset($_GET["log"])) {
     <body>
         <div id="logo">DOS TOOL</div>
         <div class="content">
+            <div class="logo-container">
+                <div class="logo"></div>
+            </div>
         <?php
             if ($running) {
                 ?>
+                <h3>Proccessing...</h3>
                 <div id="progressbar"><span>0 / <?=$requestsCnt?></span></div>
                 <div id="timingbar">0</div>
                 <a href="./index.php?action=break&log=<?=$logFileName?>" class="btn">Остановить</a>
