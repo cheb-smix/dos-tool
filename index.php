@@ -29,6 +29,9 @@ if ($matches) {
     $running = true;
     list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $logFileName) = $matches;
 } else {
+    if (!empty($_GET) && isset($_GET["url"])) {
+        $_POST = $_GET;
+    }
     if (!empty($_POST)) {
         $running = true;
         $url            = isset($_POST["url"]) ? $_POST["url"] : "";
@@ -119,7 +122,7 @@ if (!$running && isset($_GET["log"])) {
             table {
                 width: 100%;
                 color: white;
-                margin: 20px;
+                margin: 20px 0px;
                 border: 1px solid #777;
                 box-shadow: 3px 3px 5px #111;
             }
@@ -133,10 +136,10 @@ if (!$running && isset($_GET["log"])) {
             td, th {
                 padding: 4px;
             }
-            .btn, input[type=submit] {
-                color: #fff;
-                background-image: linear-gradient(135deg, #a900ec, #6b00f7);
-                border-color: #6b00f7;
+            .pull-right {
+                float: right !important;
+            }
+            .btn {
                 padding-left: 3em;
                 padding-right: 3em;
                 box-shadow: 0px 0px 0px #e300f7;
@@ -144,13 +147,31 @@ if (!$running && isset($_GET["log"])) {
                 padding: 10px;
                 border-radius: 5px;
                 text-decoration: none;
+                margin: 20px;
+                cursor: pointer;
+                position: relative;
+                display: inline-block;
             }
-            .btn:hover, .btn:active, .btn:focus, input[type=submit]:hover, input[type=submit]:active, input[type=submit]:focus {
+            input[type=submit] {
+                margin: 10px;
+            }
+            .btn-primary {
+                color: #fff;
+                background-image: linear-gradient(135deg, #a900ec, #6b00f7);
+                border-color: #6b00f7;
+            }
+            .btn-primary:hover, .btn-primary:active, .btn-primary:focus {
                 color: #ddd;
                 box-shadow: 0px 0px 5px #0066ff;
             }
-            .btn {
-                margin: 20px;
+            .btn-secondary {
+                color: #fff;
+                background-image: linear-gradient(135deg, #20e80e, #138708);
+                border-color: #0c5705;
+            }
+            .btn-secondary:hover, .btn-secondary:active, .btn-secondary:focus {
+                color: #ddd;
+                box-shadow: 0px 0px 5px #33ff33;
             }
             a {
                 color: #ccc;
@@ -237,7 +258,7 @@ if (!$running && isset($_GET["log"])) {
                 <h3>Proccessing...</h3>
                 <div id="progressbar"><span>0 / <?=$requestsCnt?></span></div>
                 <div id="timingbar">0</div>
-                <a href="./index.php?action=break&log=<?=$logFileName?>" class="btn">Остановить</a>
+                <a href="./index.php?action=break&log=<?=$logFileName?>" class="btn btn-primary">Остановить</a>
                 <script>
                     updateProgress();
                     setInterval(updateProgress, 200);
@@ -283,7 +304,12 @@ if (!$running && isset($_GET["log"])) {
                         }
                     }
                     ?>
-                    <a href="./index.php" class="btn">Main page</a>
+                    <div>
+                    <a href="./index.php" class="btn btn-primary">Main page</a>
+                    <?php if ($technical) { 
+                        ?><a href="./index.php?<?=http_build_query((array) $technical)?>" class="btn btn-secondary pull-right">Repeat</a><?php
+                    } ?>
+                    </div>
                     <table>
                         <thead><tr><th>STATUS</th><th>CNT</th></tr></thead>
                         <tbody>
@@ -336,7 +362,7 @@ if (!$running && isset($_GET["log"])) {
                         <span>Time to execute</span>
                         <input type="number" name="secondsCnt"  id="secondsCnt"  value="<?=$secondsCnt?>"   placeholder="Time to execute">
                         <span> &nbsp; </span>
-                        <input type="submit" value="Execute">
+                        <input type="submit" class="btn btn-primary" value="Execute">
                     </form>
                     <br><br>
                     <h3>Last logs</h3>
