@@ -2,15 +2,24 @@
 
 include_once "./Curl.php";
 
-list($script, $url, $xlhdagent) = $argv;
+list($script, $url, $xlhdagent, $host) = $argv;
 
 $url = base64_decode($url);
 $xlhdagent = base64_decode($xlhdagent);
 $timestamp = microtime(true);
 
-Curl::init($url, [], "GET", "text", [
-    "X-LHD-Agent: $xlhdagent"
-]);
+$randomDeviceId = sha1("device" . rand(1000, 9000000) . microtime(true));
+preg_replace('/device_id":"[a-zA-Z0-9\-]+"/', 'device_id":"' . $randomDeviceId . '"', $xlhdagent);
+
+$headers = [
+    'X-LHD-Agent: ' . stripslashes($xlhdagent)
+];
+
+if ($host != "0.0.0.0") {
+    $headers[] = 'Host: ' . $host;
+}
+
+Curl::init($url, [], "GET", "text", $headers, [], true);
 
 $body = Curl::body();
 
@@ -23,6 +32,7 @@ $data = [
     "xlhdagent" => $xlhdagent,
     "url"       => $url,
     "status"    => Curl::code(),
+    "request"   => Curl::request(),
     "is_json"   => (substr($body, 0, 1) == "{" && substr($body, -1, 1) == "}"),
 ];
 
